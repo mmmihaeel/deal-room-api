@@ -1,0 +1,70 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: deal-room-app
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: local
+      PHP_IDE_CONFIG: serverName=deal-room-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php -v >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  apache:
+    image: httpd:2.4
+    container_name: deal-room-apache
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/apache/000-default.conf:/usr/local/apache2/conf/httpd.conf:ro
+
+  mysql:
+    image: mysql:8.4
+    container_name: deal-room-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: deal_room
+      MYSQL_USER: deal_room
+      MYSQL_PASSWORD: deal_room
+    ports:
+      - "33061:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  redis:
+    image: redis:7
+    container_name: deal-room-redis
+    restart: unless-stopped
+    ports:
+      - "63791:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mysql_data:
