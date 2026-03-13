@@ -1,123 +1,72 @@
-<svg width="1280" height="680" viewBox="0 0 1280 680" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="heroGlow" x1="0" y1="0" x2="1280" y2="680" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#E7F3FF"/>
-      <stop offset="1" stop-color="#EEF7F2"/>
-    </linearGradient>
-    <filter id="shadow" x="0" y="0" width="1280" height="680" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#0F172A" flood-opacity="0.08"/>
-    </filter>
-    <style>
-      .bg { fill: #F5F7FB; }
-      .panel { fill: #FFFFFF; stroke: #D9E1EC; stroke-width: 1.5; }
-      .soft { fill: url(#heroGlow); }
-      .title { fill: #0F172A; font: 700 56px 'Segoe UI', Arial, sans-serif; }
-      .subtitle { fill: #0F172A; font: 700 24px 'Segoe UI', Arial, sans-serif; }
-      .body { fill: #475569; font: 400 19px 'Segoe UI', Arial, sans-serif; }
-      .small { fill: #475569; font: 600 14px 'Segoe UI', Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
-      .chipText { fill: #0F172A; font: 600 15px 'Segoe UI', Arial, sans-serif; }
-      .metricLabel { fill: #64748B; font: 600 13px 'Segoe UI', Arial, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; }
-      .metricValue { fill: #0F172A; font: 700 20px 'Segoe UI', Arial, sans-serif; }
-      .cardTitle { fill: #0F172A; font: 700 18px 'Segoe UI', Arial, sans-serif; }
-      .cardText { fill: #475569; font: 400 14px 'Segoe UI', Arial, sans-serif; }
-      .edge { stroke: #94A3B8; stroke-width: 2.5; stroke-linecap: round; }
-      .accent { fill: #0F766E; }
-      .accentSoft { fill: #D7F8EE; }
-      .blueSoft { fill: #DBEAFE; }
-      .amberSoft { fill: #FEF3C7; }
-      .slateSoft { fill: #E2E8F0; }
-    </style>
-  </defs>
+<svg width="1280" height="380" viewBox="0 0 1280 380" fill="none"
+    xmlns="http://www.w3.org/2000/svg">
+    <rect width="1280" height="380" rx="16" fill="#080a0f"/>
+    <rect x="1" y="1" width="1278" height="378" rx="15" stroke="#1f2937" stroke-width="2"/>
+    <g transform="translate(80, 85)">
+        <text fill="#3b82f6" font-family="sans-serif" font-size="12" font-weight="800" letter-spacing="0.1em">SECURE BACKEND ARCHITECTURE</text>
+        <text y="60" fill="white" font-family="sans-serif" font-size="60" font-weight="800">deal-room-api</text>
+        <text y="105" fill="#9ca3af" font-family="sans-serif" font-size="20" font-weight="400">Hardened Laravel API with policy-driven access and audit traceability.</text>
 
-  <rect class="bg" width="1280" height="680" rx="36"/>
-  <circle cx="1120" cy="110" r="180" fill="#DDF0FF"/>
-  <circle cx="1040" cy="590" r="170" fill="#E2F6EA"/>
-  <g filter="url(#shadow)">
-    <rect x="24" y="24" width="1232" height="632" rx="32" class="panel"/>
-  </g>
+        <g transform="translate(0, 160)">
+            <rect width="80" height="32" rx="16" stroke="#134e4a" fill="#134e4a20"/>
+            <text x="40" y="16" fill="#5eead4" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">Laravel</text>
 
-  <rect x="72" y="84" width="164" height="34" rx="17" class="accentSoft"/>
-  <text x="100" y="106" class="small" fill="#0F766E">Backend Portfolio</text>
+            <rect x="90" width="85" height="32" rx="16" stroke="#1e3a8a" fill="#1e3a8a20"/>
+            <text x="132.5" y="16" fill="#93c5fd" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">Sanctum</text>
 
-  <text x="72" y="188" class="title">deal-room-api</text>
-  <text x="72" y="234" class="subtitle">Secure Laravel backend for deal rooms, permissions, audit trails, and public share-link control.</text>
-  <text x="72" y="282" class="body">This repository emphasizes the parts reviewers care about in a real backend:</text>
-  <text x="72" y="314" class="body">organization boundaries, policy-driven authorization, lifecycle-aware sharing,</text>
-  <text x="72" y="346" class="body">versioned Redis caching, and reproducible Docker-based execution.</text>
+            <rect x="185" width="80" height="32" rx="16" stroke="#374151" fill="#37415120"/>
+            <text x="225" y="16" fill="#d1d5db" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">Policy</text>
 
-  <rect x="72" y="392" width="198" height="42" rx="21" class="slateSoft"/>
-  <rect x="286" y="392" width="192" height="42" rx="21" class="blueSoft"/>
-  <rect x="494" y="392" width="174" height="42" rx="21" class="accentSoft"/>
-  <text x="97" y="419" class="chipText">Sanctum auth</text>
-  <text x="322" y="419" class="chipText">Policy + service authz</text>
-  <text x="541" y="419" class="chipText">Audit visibility</text>
+            <rect x="275" width="80" height="32" rx="16" stroke="#134e4a" fill="#134e4a20"/>
+            <text x="315" y="16" fill="#5eead4" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">MySQL</text>
 
-  <rect x="72" y="482" width="188" height="112" rx="24" class="panel"/>
-  <rect x="278" y="482" width="188" height="112" rx="24" class="panel"/>
-  <rect x="484" y="482" width="188" height="112" rx="24" class="panel"/>
-  <text x="94" y="520" class="metricLabel">Scope</text>
-  <text x="94" y="554" class="metricValue">Organization-first</text>
-  <text x="94" y="579" class="cardText">Membership and role boundaries are</text>
-  <text x="94" y="598" class="cardText">applied before any room-level override.</text>
+            <rect x="365" width="75" height="32" rx="16" stroke="#4c1d95" fill="#4c1d9520"/>
+            <text x="402.5" y="16" fill="#c4b5fd" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">Redis</text>
 
-  <text x="300" y="520" class="metricLabel">Sharing</text>
-  <text x="300" y="554" class="metricValue">Lifecycle-aware</text>
-  <text x="300" y="579" class="cardText">Hash-only tokens, expiration, revocation,</text>
-  <text x="300" y="598" class="cardText">download limits, and public throttling.</text>
+            <rect x="450" width="80" height="32" rx="16" stroke="#374151" fill="#37415120"/>
+            <text x="490" y="16" fill="#d1d5db" font-family="sans-serif" font-size="13" font-weight="600" text-anchor="middle" dominant-baseline="central">Docker</text>
+        </g>
+    </g>
+    <g transform="translate(740, 50)">
+        <rect width="460" height="280" rx="20" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+        <g transform="translate(40, 40)">
+            <line x1="60" y1="40" x2="190" y2="40" stroke="#334155" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <line x1="190" y1="40" x2="320" y2="40" stroke="#334155" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <line x1="190" y1="65" x2="190" y2="105" stroke="#334155" stroke-width="1.5"/>
+            <line x1="190" y1="160" x2="190" y2="200" stroke="#334155" stroke-width="1.5"/>
 
-  <text x="506" y="520" class="metricLabel">Runtime</text>
-  <text x="506" y="554" class="metricValue">Docker + CI</text>
-  <text x="506" y="579" class="cardText">Local compose services mirror the</text>
-  <text x="506" y="598" class="cardText">quality gates enforced in GitHub Actions.</text>
+            <rect width="120" height="65" rx="12" fill="#020617" stroke="#1e3a8a"/>
+            <text x="60" y="28" fill="white" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Auth</text>
+            <text x="60" y="46" fill="#64748b" font-family="sans-serif" font-size="10" text-anchor="middle">Sanctum Session</text>
 
-  <rect x="720" y="84" width="488" height="512" rx="28" class="soft" stroke="#D9E1EC" stroke-width="1.5"/>
-  <text x="752" y="126" class="small" fill="#1D4ED8">System View</text>
+            <g transform="translate(130, 0)">
+                <rect width="120" height="65" rx="12" fill="#020617" stroke="#3b82f6" stroke-width="2"/>
+                <text x="60" y="28" fill="white" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Policy</text>
+                <text x="60" y="46" fill="#64748b" font-family="sans-serif" font-size="10" text-anchor="middle">Authz Engine</text>
+            </g>
 
-  <rect x="760" y="162" width="136" height="66" rx="20" class="panel"/>
-  <text x="789" y="192" class="cardTitle">API Client</text>
-  <text x="793" y="213" class="cardText">Bearer or public</text>
+            <g transform="translate(260, 0)">
+                <rect width="120" height="65" rx="12" fill="#020617" stroke="#7c2d12"/>
+                <text x="60" y="28" fill="white" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Audit</text>
+                <text x="60" y="46" fill="#64748b" font-family="sans-serif" font-size="10" text-anchor="middle">Traceability</text>
+            </g>
 
-  <rect x="928" y="162" width="136" height="66" rx="20" class="panel"/>
-  <text x="956" y="192" class="cardTitle">Apache 2.4</text>
-  <text x="958" y="213" class="cardText">HTTP entrypoint</text>
+            <g transform="translate(80, 105)">
+                <rect width="220" height="55" rx="12" fill="#020617" stroke="#334155"/>
+                <text x="110" y="22" fill="white" font-family="sans-serif" font-size="14" font-weight="700" text-anchor="middle">Share links</text>
+                <text x="110" y="38" fill="#64748b" font-family="sans-serif" font-size="10" text-anchor="middle">Expiry &amp; Revocation Lifecycle</text>
+            </g>
 
-  <line x1="896" y1="195" x2="928" y2="195" class="edge"/>
-  <polygon points="928,195 916,188 916,202" fill="#94A3B8"/>
+            <g transform="translate(0, 200)">
+                <rect width="115" height="32" rx="16" fill="#020617" stroke="#134e4a"/>
+                <text x="57.5" y="16" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">MySQL</text>
 
-  <rect x="836" y="270" width="212" height="98" rx="24" class="panel"/>
-  <text x="884" y="303" class="cardTitle">Laravel API</text>
-  <text x="869" y="328" class="cardText">Controllers, requests, resources,</text>
-  <text x="883" y="348" class="cardText">policies, and service layer</text>
+                <rect x="130" width="120" height="32" rx="16" fill="#020617" stroke="#4c1d95"/>
+                <text x="190" y="16" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">Redis Cache</text>
 
-  <line x1="996" y1="228" x2="996" y2="270" class="edge"/>
-  <polygon points="996,270 989,258 1003,258" fill="#94A3B8"/>
-
-  <rect x="744" y="408" width="132" height="66" rx="20" class="panel"/>
-  <rect x="898" y="408" width="132" height="66" rx="20" class="panel"/>
-  <rect x="1052" y="408" width="116" height="66" rx="20" class="panel"/>
-  <text x="765" y="438" class="cardTitle">Policies</text>
-  <text x="759" y="459" class="cardText">Shared auth rules</text>
-  <text x="917" y="438" class="cardTitle">Audit</text>
-  <text x="916" y="459" class="cardText">Explicit events</text>
-  <text x="1077" y="438" class="cardTitle">Cache</text>
-  <text x="1067" y="459" class="cardText">Scoped versioning</text>
-
-  <line x1="880" y1="368" x2="810" y2="408" class="edge"/>
-  <line x1="942" y1="368" x2="964" y2="408" class="edge"/>
-  <line x1="1006" y1="368" x2="1110" y2="408" class="edge"/>
-
-  <rect x="796" y="506" width="132" height="66" rx="20" class="panel"/>
-  <rect x="956" y="506" width="132" height="66" rx="20" class="panel"/>
-  <text x="832" y="536" class="cardTitle">MySQL</text>
-  <text x="826" y="557" class="cardText">System of record</text>
-  <text x="997" y="536" class="cardTitle">Redis</text>
-  <text x="975" y="557" class="cardText">Lookup + response cache</text>
-
-  <line x1="862" y1="474" x2="862" y2="506" class="edge"/>
-  <line x1="1022" y1="474" x2="1022" y2="506" class="edge"/>
-
-  <rect x="1072" y="510" width="96" height="24" rx="12" class="amberSoft"/>
-  <text x="1094" y="526" class="small" fill="#B45309">Health</text>
-  <rect x="1072" y="542" width="96" height="24" rx="12" class="accentSoft"/>
-  <text x="1091" y="558" class="small" fill="#0F766E">CI Gates</text>
+                <rect x="265" width="115" height="32" rx="16" fill="#020617" stroke="#334155"/>
+                <text x="322.5" y="16" fill="#94a3b8" font-family="sans-serif" font-size="12" font-weight="600" text-anchor="middle" dominant-baseline="central">GitHub CI</text>
+            </g>
+        </g>
+    </g>
 </svg>
