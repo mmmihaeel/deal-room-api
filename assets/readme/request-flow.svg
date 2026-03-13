@@ -1,0 +1,74 @@
+<svg width="1280" height="600" viewBox="0 0 1280 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #F5F7FB; }
+      .panel { fill: #FFFFFF; stroke: #D9E1EC; stroke-width: 1.5; }
+      .title { fill: #0F172A; font: 700 34px 'Segoe UI', Arial, sans-serif; }
+      .subtitle { fill: #475569; font: 400 18px 'Segoe UI', Arial, sans-serif; }
+      .label { fill: #0F172A; font: 700 18px 'Segoe UI', Arial, sans-serif; }
+      .body { fill: #475569; font: 400 14px 'Segoe UI', Arial, sans-serif; }
+      .mini { fill: #64748B; font: 600 12px 'Segoe UI', Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+      .edge { stroke: #94A3B8; stroke-width: 3; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1280" height="600" rx="36"/>
+  <rect x="24" y="24" width="1232" height="552" rx="32" class="panel"/>
+  <text x="64" y="84" class="title">Request flow</text>
+  <text x="64" y="116" class="subtitle">Validation, authorization, cache access, and audit recording stay visible in the request path.</text>
+
+  <rect x="76" y="188" width="146" height="86" rx="24" fill="#DBEAFE" stroke="#BFDBFE" stroke-width="1.5"/>
+  <rect x="252" y="188" width="172" height="86" rx="24" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1.5"/>
+  <rect x="454" y="188" width="184" height="86" rx="24" fill="#D7F8EE" stroke="#B7EBD7" stroke-width="1.5"/>
+  <rect x="668" y="188" width="196" height="86" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <rect x="894" y="188" width="160" height="86" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <rect x="1084" y="188" width="120" height="86" rx="24" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5"/>
+
+  <text x="126" y="223" class="mini" fill="#1D4ED8">Entry</text>
+  <text x="118" y="247" class="label">Client</text>
+
+  <text x="306" y="223" class="mini">Route</text>
+  <text x="285" y="247" class="label">Throttle + Route</text>
+
+  <text x="514" y="223" class="mini" fill="#0F766E">Guard</text>
+  <text x="491" y="247" class="label">Form Request</text>
+
+  <text x="732" y="223" class="mini">Access</text>
+  <text x="699" y="247" class="label">Policy + Auth Service</text>
+
+  <text x="944" y="223" class="mini">Domain</text>
+  <text x="931" y="247" class="label">Controller</text>
+
+  <text x="1115" y="223" class="mini" fill="#B45309">Output</text>
+  <text x="1108" y="247" class="label">Response</text>
+
+  <line x1="222" y1="231" x2="252" y2="231" class="edge"/>
+  <polygon points="252,231 240,224 240,238" fill="#94A3B8"/>
+  <line x1="424" y1="231" x2="454" y2="231" class="edge"/>
+  <polygon points="454,231 442,224 442,238" fill="#94A3B8"/>
+  <line x1="638" y1="231" x2="668" y2="231" class="edge"/>
+  <polygon points="668,231 656,224 656,238" fill="#94A3B8"/>
+  <line x1="864" y1="231" x2="894" y2="231" class="edge"/>
+  <polygon points="894,231 882,224 882,238" fill="#94A3B8"/>
+  <line x1="1054" y1="231" x2="1084" y2="231" class="edge"/>
+  <polygon points="1084,231 1072,224 1072,238" fill="#94A3B8"/>
+
+  <rect x="682" y="334" width="168" height="84" rx="24" class="panel"/>
+  <rect x="888" y="334" width="172" height="84" rx="24" class="panel"/>
+  <rect x="1098" y="334" width="106" height="84" rx="24" class="panel"/>
+  <text x="735" y="367" class="label">MySQL</text>
+  <text x="710" y="390" class="body">System of record</text>
+  <text x="944" y="367" class="label">Redis</text>
+  <text x="919" y="390" class="body">Scoped cache + lookup</text>
+  <text x="1116" y="367" class="label">Audit</text>
+  <text x="1113" y="390" class="body">Explicit events</text>
+
+  <line x1="978" y1="274" x2="766" y2="334" class="edge"/>
+  <line x1="978" y1="274" x2="974" y2="334" class="edge"/>
+  <line x1="978" y1="274" x2="1151" y2="334" class="edge"/>
+
+  <text x="104" y="462" class="body">Route-level rate limits cover login and public share-link resolution.</text>
+  <text x="104" y="486" class="body">Validation enforces payload shape and cross-record consistency before mutations occur.</text>
+  <text x="104" y="510" class="body">Policies stay thin because `AuthorizationService` centralizes membership, role, and room-grant logic.</text>
+  <text x="104" y="534" class="body">Controllers remain orchestration-focused while cache invalidation and audit behavior stay explicit.</text>
+</svg>

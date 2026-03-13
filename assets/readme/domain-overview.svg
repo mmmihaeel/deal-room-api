@@ -1,0 +1,89 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #F5F7FB; }
+      .panel { fill: #FFFFFF; stroke: #D9E1EC; stroke-width: 1.5; }
+      .title { fill: #0F172A; font: 700 34px 'Segoe UI', Arial, sans-serif; }
+      .subtitle { fill: #475569; font: 400 18px 'Segoe UI', Arial, sans-serif; }
+      .label { fill: #0F172A; font: 700 19px 'Segoe UI', Arial, sans-serif; }
+      .body { fill: #475569; font: 400 14px 'Segoe UI', Arial, sans-serif; }
+      .mini { fill: #64748B; font: 600 12px 'Segoe UI', Arial, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+      .edge { stroke: #94A3B8; stroke-width: 3; stroke-linecap: round; }
+      .dot { fill: #94A3B8; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1280" height="720" rx="36"/>
+  <rect x="24" y="24" width="1232" height="672" rx="32" class="panel"/>
+  <text x="64" y="84" class="title">Domain overview</text>
+  <text x="64" y="116" class="subtitle">Organization scope drives memberships, room structure, sharing, and audit history.</text>
+
+  <rect x="72" y="168" width="188" height="110" rx="24" fill="#DBEAFE" stroke="#BFDBFE" stroke-width="1.5"/>
+  <text x="127" y="206" class="label">User</text>
+  <text x="102" y="234" class="body">Authenticated actor that may</text>
+  <text x="97" y="255" class="body">participate in multiple orgs.</text>
+
+  <rect x="318" y="182" width="178" height="82" rx="24" fill="#E2E8F0" stroke="#CBD5E1" stroke-width="1.5"/>
+  <text x="358" y="214" class="label">Membership</text>
+  <text x="357" y="239" class="body">Role baseline</text>
+
+  <rect x="554" y="154" width="246" height="138" rx="28" fill="#D7F8EE" stroke="#B7EBD7" stroke-width="1.5"/>
+  <text x="624" y="198" class="label">Organization</text>
+  <text x="598" y="228" class="body">Tenant boundary for protected</text>
+  <text x="610" y="249" class="body">records, visibility, and audit.</text>
+  <rect x="624" y="258" width="106" height="24" rx="12" fill="#FFFFFF"/>
+  <text x="647" y="274" class="mini" fill="#0F766E">Tenant scope</text>
+
+  <rect x="866" y="154" width="264" height="138" rx="28" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5"/>
+  <text x="948" y="198" class="label">AuditLog</text>
+  <text x="905" y="228" class="body">Append-only record of security-</text>
+  <text x="912" y="249" class="body">relevant application behavior.</text>
+  <rect x="944" y="258" width="108" height="24" rx="12" fill="#FFFFFF"/>
+  <text x="969" y="274" class="mini" fill="#B45309">Traceability</text>
+
+  <line x1="260" y1="223" x2="318" y2="223" class="edge"/>
+  <polygon points="318,223 306,216 306,230" fill="#94A3B8"/>
+  <line x1="496" y1="223" x2="554" y2="223" class="edge"/>
+  <polygon points="554,223 542,216 542,230" fill="#94A3B8"/>
+  <line x1="800" y1="223" x2="866" y2="223" class="edge"/>
+  <polygon points="866,223 854,216 854,230" fill="#94A3B8"/>
+
+  <rect x="510" y="360" width="334" height="122" rx="28" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <text x="619" y="401" class="label">DealSpace</text>
+  <text x="564" y="429" class="body">Room inside one organization with status,</text>
+  <text x="582" y="450" class="body">documents, folders, sharing, and grants.</text>
+
+  <line x1="677" y1="292" x2="677" y2="360" class="edge"/>
+  <polygon points="677,360 670,348 684,348" fill="#94A3B8"/>
+
+  <rect x="156" y="536" width="214" height="110" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <text x="220" y="576" class="label">Folder</text>
+  <text x="184" y="605" class="body">Nested grouping within</text>
+  <text x="196" y="626" class="body">a single deal space.</text>
+
+  <rect x="436" y="536" width="242" height="110" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <text x="507" y="576" class="label">Document</text>
+  <text x="470" y="605" class="body">Metadata record for one file-like</text>
+  <text x="494" y="626" class="body">artifact and version history.</text>
+
+  <rect x="744" y="536" width="206" height="110" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <text x="766" y="576" class="label">DealSpacePermission</text>
+  <text x="785" y="605" class="body">Per-user room grant</text>
+  <text x="781" y="626" class="body">for upload, share, manage.</text>
+
+  <rect x="1016" y="536" width="180" height="110" rx="24" fill="#FFFFFF" stroke="#D9E1EC" stroke-width="1.5"/>
+  <text x="1061" y="576" class="label">ShareLink</text>
+  <text x="1041" y="605" class="body">Public token lifecycle</text>
+  <text x="1056" y="626" class="body">for one document.</text>
+
+  <line x1="564" y1="482" x2="292" y2="536" class="edge"/>
+  <line x1="636" y1="482" x2="557" y2="536" class="edge"/>
+  <line x1="718" y1="482" x2="847" y2="536" class="edge"/>
+  <line x1="790" y1="482" x2="1106" y2="536" class="edge"/>
+
+  <line x1="678" y1="591" x2="1016" y2="591" class="edge"/>
+  <polygon points="1016,591 1004,584 1004,598" fill="#94A3B8"/>
+
+  <circle cx="677" cy="360" r="5" class="dot"/>
+  <circle cx="677" cy="482" r="5" class="dot"/>
+</svg>

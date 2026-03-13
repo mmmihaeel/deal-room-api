@@ -1,175 +1,227 @@
 # deal-room-api
 
-API-first deal room backend for organization-scoped document collaboration, secure external sharing, and auditable access control.
+> Secure Laravel backend for organization-scoped deal rooms, permission-aware collaboration, and audit-grade access visibility.
 
-## Business problem
-Transaction teams (M&A, fundraising, legal diligence) need a controlled way to organize sensitive files, manage internal and external access, and prove who accessed what. `deal-room-api` models that workflow with explicit tenant boundaries, role-aware permissions, expiring share links, and immutable audit events.
+<p align="center">
+  <img src="assets/readme/hero.svg" alt="deal-room-api repository overview" width="100%">
+</p>
 
-## Core features
-- Bearer token authentication with Laravel Sanctum
-- Organization, membership, deal-space, folder, and document metadata CRUD
-- Role-based and policy-based authorization (`owner`, `admin`, `member`, `viewer`)
-- Deal-space permission grants (`view`, `upload`, `share`, `manage`)
-- Share links with expiration, revoke support, and download limits
-- Audit log querying with filters and organization scoping
-- Search, sort, and pagination across major list endpoints
-- Versioned API namespace at `/api/v1`
+A backend portfolio repository focused on the parts that make a secure API credible: tenant boundaries, policy-backed authorization, controlled public sharing, explicit audit events, scoped Redis caching, and reproducible Docker workflows.
 
-## Technology stack
-- PHP 8.3, Laravel 10
-- MySQL 8.4, Redis 7
-- Apache 2.4 + PHP-FPM
-- Docker Compose
-- PHPUnit, Pint, PHPStan (Larastan)
-- GitHub Actions CI
+| Focus | Runtime | Data Plane | Delivery |
+| --- | --- | --- | --- |
+| Permissions, auditability, secure sharing | PHP 8.3, Laravel 10, Sanctum | MySQL 8.4, Redis 7 | Docker Compose, Apache, GitHub Actions |
 
-## Architecture decisions
-- Controllers remain orchestration-focused; business rules live in services and policies.
-- Form Requests handle validation at the edge of each write/read contract.
-- Policies delegate complex checks to `AuthorizationService` for shared, testable rules.
-- Resources define stable JSON responses.
-- Migrations enforce referential integrity and query-oriented indexes.
-- Audit logging is explicit for sensitive actions, not implicit via model events.
+## Quick Navigation
+- [Why This Repository Matters](#why-this-repository-matters)
+- [Domain Overview](#domain-overview)
+- [Access Model and Security Model](#access-model-and-security-model)
+- [Capability Matrix](#capability-matrix)
+- [API Overview](#api-overview)
+- [Local Workflow](#local-workflow)
+- [Validation and Quality](#validation-and-quality)
+- [Repository Structure](#repository-structure)
+- [Docs Map](#docs-map)
+- [Scope Boundaries](#scope-boundaries)
+- [Future Improvements](#future-improvements)
 
-More detail: [docs/architecture.md](docs/architecture.md)
+## Why This Repository Matters
+This repository is intentionally more than a CRUD demo. It models a security-sensitive workspace where access decisions, external sharing, and traceability are part of the core design rather than afterthoughts.
 
-## Permissions and access control
-Primary decision order:
-1. Organization membership check
-2. Organization role check
-3. Optional deal-space permission override
+- Organization membership is a hard boundary in both the schema and the request layer.
+- Authorization combines Laravel policies with a shared `AuthorizationService`, keeping access rules explicit and testable.
+- Public document sharing is treated as a lifecycle: hashed tokens, expiry, revocation, download limits, throttling, and audit events.
+- Redis is used for scoped cache acceleration and versioned invalidation instead of broad cache flushes.
+- Docker Compose and GitHub Actions make the same workflow easy to run locally and verify in CI.
 
-| Role | Organization scope | Deal space | Document metadata | Share links | Audit logs |
-| --- | --- | --- | --- | --- | --- |
-| `owner` | Full control | Full control | Full control | Full control | Read |
-| `admin` | Operational control | Full control | Full control | Full control | Read |
-| `member` | Read | Read | Create/update/delete | Create/revoke | No |
-| `viewer` | Read | Read | No | No (unless `share` grant) | No |
+## Domain Overview
+`deal-room-api` models a transaction workspace as an organization-scoped system of memberships, deal spaces, document structures, controlled share links, and append-only security events.
 
-Deal-space permission grants can elevate a user for a specific deal space (`upload`, `share`, `manage`) without changing organization-level role.
+<p align="center">
+  <img src="assets/readme/domain-overview.svg" alt="Domain overview diagram for deal-room-api" width="100%">
+</p>
 
-## Share-link security design
-- Random 64-character token generated on create.
-- Only SHA-256 token hash is persisted; plaintext token is returned once.
-- Public resolution endpoint enforces:
-  - `expires_at` not passed
-  - `revoked_at` is null
-  - `download_count < max_downloads` when limit exists
-- Resolution increments download count transactionally.
-- Rate limiting is applied for login and public share-link resolution.
+| Entity | Responsibility | Important behavior |
+| --- | --- | --- |
+| `Organization` | Tenant boundary for every protected record | Owns memberships, deal spaces, folders, documents, share links, and audit logs |
+| `Membership` | Joins users to organizations | Carries baseline role: `owner`, `admin`, `member`, `viewer` |
+| `DealSpace` | Working room inside an organization | Holds folders, documents, share links, and per-room grants |
+| `DealSpacePermission` | Per-user override inside one deal space | Effective grants today are `upload`, `share`, and `manage`; `view` is stored but read access already comes from organization membership |
+| `Folder` | Nested document grouping | Supports parent-child trees inside one deal space |
+| `Document` | Metadata record for a file artifact | Tracks filename, MIME type, size, checksum, metadata, version, and upload time |
+| `ShareLink` | Public access handle for one document | Stores hash only, enforces expiry, revocation, download limits, and access counters |
+| `AuditLog` | Append-only event trail | Captures actor, target, organization, request metadata, and structured context |
 
-## Caching strategy
-- Redis-backed cache for selected read-heavy list/show responses.
-- Versioned cache keys via `CacheVersionService` (`domain + scope + version + params hash`).
-- Write operations bump relevant version keys to invalidate stale list/show payloads.
-- Share-link resolution caches token-hash lookup for short-lived acceleration.
+Documents are metadata-only in the current scope. The repository does not claim binary object storage or file streaming support.
 
-## Quick start (Docker)
+## Access Model and Security Model
+Protected access is organization-scoped first, then narrowed or elevated through role checks and selected deal-space grants.
+
+<p align="center">
+  <img src="assets/readme/access-model.svg" alt="Access and security model diagram for deal-room-api" width="100%">
+</p>
+
+Decision order:
+1. Confirm the caller is a member of the target organization.
+2. Apply the membership role baseline.
+3. Apply effective deal-space grants where the policy supports them.
+4. For public share links, bypass authentication but enforce token lifecycle checks, throttling, and audit logging.
+
+| Role | Organization | Memberships | Deal spaces | Folders and documents | Share links | Audit logs |
+| --- | --- | --- | --- | --- | --- | --- |
+| `owner` | Full control, including delete | Manage | Manage, including permission grants | Manage | Manage | Read |
+| `admin` | Operational control, no organization delete | Manage | Manage, including permission grants | Manage | Manage | Read |
+| `member` | Read | No | Read | Create, update, delete | Create and revoke | No |
+| `viewer` | Read | No | Read | Read only | No baseline access | No |
+
+| Deal-space grant | Effective behavior today |
+| --- | --- |
+| `upload` | Enables folder and document mutations inside the granted deal space |
+| `share` | Enables share-link creation and revocation inside the granted deal space |
+| `manage` | Enables deal-space updates, grant management, document and folder mutations, and share-link management |
+| `view` | Stored and validated, but current read access already comes from organization membership, so it does not widen access on its own today |
+
+Public share-link protections in the current implementation:
+- Tokens are generated randomly and only the SHA-256 hash is persisted.
+- Resolution fails when the link is expired, revoked, unknown, or over its download limit.
+- Successful public resolution increments `download_count` inside a database transaction.
+- Login and public share-link resolution are rate limited.
+- Create, resolve, and revoke actions are written to the audit log.
+
+## Capability Matrix
+| Area | Implemented in this repository | Where to look |
+| --- | --- | --- |
+| Authentication | Sanctum login/logout and authenticated `me` endpoint | [docs/security.md](docs/security.md), [docs/api-overview.md](docs/api-overview.md) |
+| Authorization | Laravel policies backed by `AuthorizationService` | [docs/security.md](docs/security.md), [docs/architecture.md](docs/architecture.md) |
+| Organizations and memberships | Organization CRUD, membership CRUD, role enforcement | [docs/domain-model.md](docs/domain-model.md), [docs/api-overview.md](docs/api-overview.md) |
+| Deal spaces, folders, and documents | Deal-space CRUD, per-room grants, nested folders, document metadata records | [docs/domain-model.md](docs/domain-model.md), [docs/api-overview.md](docs/api-overview.md) |
+| Share links | Tokenized public access with expiry, revocation, limits, and audit trail | [docs/security.md](docs/security.md), [docs/api-overview.md](docs/api-overview.md) |
+| Audit logs | Organization-scoped event querying for privileged roles | [docs/security.md](docs/security.md), [docs/domain-model.md](docs/domain-model.md) |
+| Redis caching | Versioned cache keys for list/detail reads and short-lived share-link lookup cache | [docs/architecture.md](docs/architecture.md) |
+| Dockerized runtime | `app`, `apache`, `mysql`, and `redis` local stack with health checks | [docs/local-development.md](docs/local-development.md), [docs/deployment-notes.md](docs/deployment-notes.md) |
+| Tests, CI, and static analysis | PHPUnit, Pint, PHPStan, migrations, and Docker build verification in CI | [docs/local-development.md](docs/local-development.md), [docs/architecture.md](docs/architecture.md) |
+
+## API Overview
+The API is versioned under `/api/v1`. The README keeps the surface summary short and leaves endpoint detail, query parameters, and examples to [docs/api-overview.md](docs/api-overview.md).
+
+| Family | Route surface | Purpose |
+| --- | --- | --- |
+| Auth | `POST /auth/login`, `POST /auth/logout`, `GET /me` | Token issuance, revocation, and caller identity |
+| Organizations | `GET/POST/PUT/DELETE /organizations` | Tenant creation and organization lifecycle |
+| Memberships | `GET/POST/PUT/DELETE /memberships` | Role assignment inside organizations |
+| Deal spaces | `GET/POST/PUT/DELETE /deal-spaces` | Room lifecycle inside an organization |
+| Deal-space grants | `GET/PUT /deal-spaces/{deal_space}/permissions` | Per-user permission overrides for one room |
+| Folders and documents | `GET/POST/PUT/DELETE /folders`, `GET/POST/PUT/DELETE /documents` | Nested structure and metadata management |
+| Share links | `GET/POST/DELETE /share-links`, public `GET /share-links/{token}` | Controlled external access to one document |
+| Observability | `GET /audit-logs`, `GET /health` | Audit retrieval and dependency health |
+
+<p align="center">
+  <img src="assets/readme/request-flow.svg" alt="API request flow for deal-room-api" width="100%">
+</p>
+
+## Local Workflow
+Quick start:
+
 ```bash
 cp .env.example .env
 docker compose up -d --build
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
-docker compose ps
 curl http://localhost:8080/api/v1/health
 ```
 
-## Local quality and tests
+Day-to-day commands:
+
 ```bash
-docker compose exec app php artisan test
-docker compose exec app vendor/bin/pint --test
-docker compose exec app vendor/bin/phpstan analyse --memory-limit=512M
-docker compose exec app composer quality
+make up
+make down
+make restart
+make logs
+make shell
+make migrate
+make seed
+make fresh
+make test
+make lint
+make stan
+make quality
+make health
 ```
 
-## Demo credentials
-Seeded users all use password `Password123!`.
+Seeded demo accounts all use `Password123!`:
 - `owner@acme.test`
 - `admin@acme.test`
 - `member@acme.test`
 - `viewer@acme.test`
 - `owner@northwind.test`
 
-## Demo flow
-1. Login and capture token.
-```bash
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{"email":"owner@acme.test","password":"Password123!","device_name":"demo-cli"}'
-```
-2. Call authenticated endpoints with `Authorization: Bearer <access_token>`.
-```bash
-curl http://localhost:8080/api/v1/me -H "Authorization: Bearer <access_token>"
-curl "http://localhost:8080/api/v1/organizations?per_page=5" -H "Authorization: Bearer <access_token>"
-```
-3. Create a share link for an existing document and resolve it publicly.
-```bash
-curl -X POST http://localhost:8080/api/v1/share-links \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"document_id":1,"expires_at":"2030-01-01T00:00:00Z","max_downloads":3}'
+Local workflow details, ports, and smoke tests are documented in [docs/local-development.md](docs/local-development.md).
 
-curl http://localhost:8080/api/v1/share-links/<token>
-```
+## Validation and Quality
+| Check | Purpose | Command or signal |
+| --- | --- | --- |
+| Pint | Enforces consistent formatting | `docker compose exec app vendor/bin/pint --test` |
+| PHPStan | Checks static type and flow issues | `docker compose exec app vendor/bin/phpstan analyse --memory-limit=512M` |
+| PHPUnit | Verifies auth, authorization, CRUD flows, share links, audit logs, and health behavior | `docker compose exec app php artisan test` |
+| Composer quality gate | Runs lint, static analysis, and tests together | `docker compose exec app composer quality` |
+| Health endpoint | Confirms Laravel can reach MySQL and Redis | `curl http://localhost:8080/api/v1/health` |
+| Docker runtime | Confirms container health and service wiring | `docker compose ps` |
+| GitHub Actions CI | Repeats migrations, Pint, PHPStan, PHPUnit, and Docker build verification | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
-## API overview
-Base path: `/api/v1`
-- `POST /auth/login`
-- `POST /auth/logout`
-- `GET /me`
-- `GET|POST|PUT|DELETE /organizations`
-- `GET|POST|PUT|DELETE /deal-spaces`
-- `GET|POST|PUT|DELETE /folders`
-- `GET|POST|PUT|DELETE /documents`
-- `GET|POST|DELETE /share-links`
-- `GET /share-links/{token}` (public)
-- `GET /audit-logs`
-- `GET /health`
-
-Full endpoint and filter details: [docs/api-overview.md](docs/api-overview.md)
-
-## CI pipeline
-GitHub Actions workflow (`.github/workflows/ci.yml`) runs:
-- dependency install
-- migration check
-- Pint
-- PHPStan (Larastan)
-- PHPUnit
-- Docker build verification (`app`, `apache`)
-
-## Repository layout
+## Repository Structure
 ```text
-app/
-  Enums/
-  Http/Controllers/Api/V1/
-  Http/Requests/
-  Http/Resources/
-  Models/
-  Policies/
-  Services/
-database/
-  factories/
-  migrations/
-  seeders/
-docker/
-  apache/
-  php/
-docs/
-.github/workflows/
+.
+|-- app/
+|   |-- Enums/
+|   |-- Http/
+|   |   |-- Controllers/Api/V1/
+|   |   |-- Requests/
+|   |   `-- Resources/
+|   |-- Models/
+|   |-- Policies/
+|   `-- Services/
+|-- assets/
+|   `-- readme/
+|       |-- hero.svg
+|       |-- domain-overview.svg
+|       |-- access-model.svg
+|       `-- request-flow.svg
+|-- database/
+|   |-- factories/
+|   |-- migrations/
+|   `-- seeders/
+|-- docker/
+|   |-- apache/
+|   `-- php/
+|-- docs/
+|-- routes/
+|-- tests/
+|-- docker-compose.yml
+|-- Makefile
+`-- .github/workflows/ci.yml
 ```
 
-## Documentation
-- [Architecture](docs/architecture.md)
-- [Domain model](docs/domain-model.md)
-- [API overview](docs/api-overview.md)
-- [Security](docs/security.md)
-- [Local development](docs/local-development.md)
-- [Deployment notes](docs/deployment-notes.md)
-- [Roadmap](docs/roadmap.md)
+## Docs Map
+| Document | Purpose |
+| --- | --- |
+| [docs/architecture.md](docs/architecture.md) | Runtime topology, application layers, cache behavior, and audit boundaries |
+| [docs/domain-model.md](docs/domain-model.md) | Entity relationships, integrity rules, and lifecycle notes |
+| [docs/api-overview.md](docs/api-overview.md) | Endpoint families, filters, conventions, examples, and rate limits |
+| [docs/security.md](docs/security.md) | Authentication, authorization, share-link controls, audit coverage, and hardening notes |
+| [docs/local-development.md](docs/local-development.md) | Docker stack, ports, setup, demo accounts, and smoke tests |
+| [docs/deployment-notes.md](docs/deployment-notes.md) | What ships in-repo today and how to translate it into a production baseline |
+| [docs/roadmap.md](docs/roadmap.md) | Realistic next steps that extend the current scope without misrepresenting the implementation |
 
-## Current limitations
-- Document binary storage is out of scope; this project manages document metadata only.
-- External identity provider integration is not included.
-- OpenAPI artifact is not generated yet; endpoint behavior is documented in `docs/api-overview.md`.
+## Scope Boundaries
+- Documents are metadata records only. Binary upload, storage, and streaming are intentionally outside the implemented scope.
+- The repository ships a local Docker Compose stack, not a full production deployment or infrastructure-as-code package.
+- External identity providers, MFA flows, and token scopes are not implemented.
+- Endpoint behavior is documented in Markdown; an OpenAPI artifact is not generated yet.
+- There is no background job pipeline, object storage adapter, or webhook delivery path in the current codebase.
+
+## Future Improvements
+- Generate an OpenAPI document and publish a Swagger or Redoc view for reviewers.
+- Add object storage integration when the project expands beyond metadata-only documents.
+- Introduce background jobs for heavier audit exports and reporting workflows.
+- Extend authentication with token scopes or MFA-ready integration points.

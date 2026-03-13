@@ -1,83 +1,75 @@
 # Architecture
 
-## Context
-`deal-room-api` is an API-first backend for secure, organization-scoped document collaboration in transaction workflows. It focuses on controlled access, traceability, and maintainable backend design.
+`deal-room-api` is designed as an API-first Laravel service where organization isolation, explicit authorization, auditable mutations, and predictable local execution are first-class concerns.
 
-## Architecture goals
-- Keep authorization explicit and testable.
-- Keep mutation behavior auditable.
-- Keep controller code thin and readable.
-- Keep local and CI execution reproducible through Docker.
+## Design Priorities
+- Keep tenant boundaries visible in schema design, controller contracts, and query shape.
+- Keep authorization centralized enough to reason about and regression-test.
+- Keep public sharing explicit, bounded, and lifecycle-driven.
+- Keep the runtime small enough to run locally, but structured enough to resemble a production backend.
 
-## Runtime topology
-- `apache`: HTTP entrypoint, serves `public/`, forwards PHP execution to FPM.
-- `app`: Laravel runtime (PHP-FPM 8.3), Artisan, Composer, test/lint tooling.
-- `mysql`: relational source of truth for transactional domain data.
-- `redis`: caching and short-lived lookup acceleration.
+## Runtime Topology
+| Service | Responsibility | Notes |
+| --- | --- | --- |
+| `apache` | Public HTTP entrypoint | Binds `localhost:8080` and serves Laravel through `public/` |
+| `app` | PHP-FPM 8.3 Laravel runtime | Runs Artisan, Composer, Pint, PHPStan, and PHPUnit |
+| `mysql` | Relational source of truth | Stores organizations, memberships, deal spaces, documents, share links, and audit logs |
+| `redis` | Cache and lookup acceleration | Holds versioned API cache entries and short-lived share-link lookup state |
 
-```mermaid
-flowchart LR
-    Client["API Client"] --> Apache["Apache 2.4"]
-    Apache --> App["Laravel (PHP-FPM)"]
-    App --> MySQL["MySQL 8.4"]
-    App --> Redis["Redis 7"]
-```
+The health endpoint at `GET /api/v1/health` checks both MySQL and Redis connectivity and reports `ok` or `degraded`.
 
-## Application layout
-- `app/Http/Controllers/Api/V1`: HTTP orchestration
-- `app/Http/Requests`: validation and request contracts
-- `app/Policies`: authorization rules
-- `app/Services`: domain-level business behavior
-- `app/Http/Resources`: response transformation
-- `app/Models`: persistence mapping and relationships
-- `database/migrations`: schema and indexes
-- `database/seeders`: deterministic demo data
+## Application Layers
+| Path | Responsibility | Why it matters |
+| --- | --- | --- |
+| `app/Http/Controllers/Api/V1` | Request orchestration | Keeps endpoint behavior readable and thin |
+| `app/Http/Requests` | Validation and query contracts | Hardens inputs before policy or model work starts |
+| `app/Policies` | Authorization entry points | Delegates shared decision logic instead of duplicating rules |
+| `app/Services` | Cross-cutting domain logic | Houses audit recording, authorization helpers, cache versioning, and share-link lifecycle behavior |
+| `app/Http/Resources` | JSON response shape | Keeps payloads stable and explicit |
+| `app/Models` | Persistence mapping and relationships | Encodes the organization-scoped domain model |
+| `database/migrations` | Schema and indexes | Enforces integrity and query-friendly constraints |
+| `database/seeders` | Deterministic demo dataset | Makes the repository easy to review locally |
 
-## Authorization model
-Authorization decisions are centralized in `AuthorizationService`, invoked by policies.
+## Request Path
+![Request flow diagram](../assets/readme/request-flow.svg)
 
-Decision chain:
-1. Confirm organization membership.
-2. Evaluate membership role (`owner`, `admin`, `member`, `viewer`).
-3. Evaluate optional deal-space overrides (`view`, `upload`, `share`, `manage`).
+1. Apache receives the request and passes it into Laravel.
+2. Route middleware applies global API throttling and route-specific limits where configured.
+3. Form Requests validate payloads and query parameters.
+4. Policies delegate to `AuthorizationService` for membership, role, and deal-space grant checks.
+5. Controllers coordinate model or service work and keep mutation behavior explicit.
+6. Sensitive actions are recorded through `AuditLogService`.
+7. Resources or JSON responses shape the final payload.
 
-This keeps authorization logic reusable across controllers and easy to regression-test.
+## Authorization, Audit, and Cache Interaction
+- Organization membership is the primary access boundary.
+- Role baselines determine what a caller can do before any deal-space grant is considered.
+- Effective deal-space elevation today comes from `upload`, `share`, and `manage`; `view` is stored but current read access already comes from organization membership.
+- Audit logging is explicit in controllers rather than hidden behind model events, which makes sensitive flows easier to review.
+- `CacheVersionService` keeps cache invalidation deterministic by bumping scoped version keys instead of clearing broad namespaces.
 
-## Share-link design
-- Share-link tokens are generated randomly and returned once.
-- Persisted value is a SHA-256 hash only (`token_hash`).
-- Resolution runs inside a DB transaction with row lock to safely increment download counters.
-- Resolution validates: not revoked, not expired, and below download limit.
-- Public resolution endpoint is rate-limited and backed by short-lived token-hash lookup cache.
+## Persistence and Deletion Behavior
+- Organizations, deal spaces, and documents use soft deletes.
+- Folders are hard-deleted and enforce unique sibling names inside a single deal space.
+- Share links are revoked through `revoked_at`; the public lifecycle is blocked without deleting the record.
+- Audit logs are append-only at the application level and do not have an `updated_at` column.
 
-## Caching strategy
-`CacheVersionService` implements versioned cache keys:
-- Key shape: `cache:{domain}:{scope}:v{n}:{params-hash}`
-- Read-heavy endpoints call `remember(...)`.
-- Writes call `bump(domain, scope)` for deterministic invalidation.
-- Scope is chosen by data visibility:
-  - user-scoped lists (`organization-list`, `deal-space-list`, etc.)
-  - entity-scoped detail views (`document-show`, `deal-space-show`, etc.)
+## Caching Strategy
+`CacheVersionService` uses the key shape `cache:{domain}:{scope}:v{n}:{params-hash}`.
 
-## Request lifecycle
-1. Request enters Apache and is forwarded to Laravel.
-2. Form Request validates input and query constraints.
-3. Policy authorization runs through `AuthorizationService`.
-4. Controller delegates to model/service logic.
-5. Sensitive mutations are recorded via `AuditLogService`.
-6. Response is shaped by API Resource classes.
+- User-scoped list caches support endpoints such as organizations, deal spaces, folders, documents, share links, and audit logs.
+- Entity-scoped detail caches support show endpoints such as organizations, deal spaces, and documents.
+- Write operations bump only the affected version keys.
+- Share-link resolution uses a separate short-lived token-hash lookup cache before the database transaction that increments `download_count`.
 
-```mermaid
-flowchart LR
-    Req["HTTP Request"] --> Val["FormRequest Validation"]
-    Val --> Authz["Policy + AuthorizationService"]
-    Authz --> Domain["Controller + Service/Model Logic"]
-    Domain --> Audit["AuditLogService (when sensitive)"]
-    Audit --> Res["API Resource Response"]
-```
+## Quality Controls
+- Formatting is enforced with `vendor/bin/pint`.
+- Static analysis runs through PHPStan with Larastan.
+- Feature and unit tests cover health, auth, authorization, CRUD flows, share links, and audit behavior.
+- GitHub Actions runs dependency install, environment setup, migrations, Pint, PHPStan, PHPUnit, and Docker build verification.
 
-## Quality controls
-- Formatting: `vendor/bin/pint`
-- Static analysis: `vendor/bin/phpstan analyse`
-- Tests: PHPUnit feature + unit suites
-- CI workflow runs lint, static analysis, migrations, tests, and Docker build checks
+## Related Docs
+- [Domain Model](domain-model.md)
+- [API Overview](api-overview.md)
+- [Security](security.md)
+- [Local Development](local-development.md)
